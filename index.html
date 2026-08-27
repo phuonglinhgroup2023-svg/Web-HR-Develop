@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tuyển Dụng Công Ty A - Hành Trình Trải Nghiệm</title>
+  <link rel="stylesheet" href="style.css?v=26">
+</head>
+<body>
+  <div class="build-badge">WEB DECK v8</div>
+  <div class="account-actions" id="account-actions"><button type="button" onclick="openAuthModal('login')">Đăng nhập</button><button type="button" class="account-register" onclick="openAuthModal('register')">Đăng ký</button></div>
+  <button class="profile-open-button" id="profile-open-button" type="button" onclick="showProfileModal()">Hồ sơ của tôi</button>
+
+  <div class="cookie-banner" id="cookie-banner" role="dialog" aria-label="Lựa chọn cookie">
+    <div><strong>Quyền riêng tư của bạn</strong><p>Cookie giúp duy trì phiên và đề xuất job phù hợp hơn. Bạn có thể thay đổi lựa chọn bất cứ lúc nào.</p></div>
+    <div class="cookie-actions"><button type="button" class="cookie-minimal" onclick="saveCookiePreferences(false, false)">Chỉ cần thiết</button><button type="button" class="cookie-settings" onclick="toggleCookieSettings()">Tùy chỉnh</button><button type="button" class="cookie-accept" onclick="saveCookiePreferences(true, true)">Đồng ý tất cả</button></div>
+    <div class="cookie-options" id="cookie-options"><label><input type="checkbox" checked disabled> Cookie cần thiết (luôn bật)</label><label><input type="checkbox" id="cookie-personalization-choice"> Cá nhân hóa job</label><label><input type="checkbox" id="cookie-analytics-choice"> Phân tích hành vi tổng hợp</label><button type="button" class="cookie-save" onclick="saveCookiePreferences()">Lưu lựa chọn</button></div>
+  </div>
+
+  <div class="auth-modal" id="auth-modal" aria-hidden="true"><div class="auth-card"><button class="onboarding-close" type="button" onclick="closeAuthModal()">&times;</button><p class="onboarding-eyebrow">Tài khoản của bạn</p><h2 id="auth-title">Đăng nhập</h2><p id="auth-copy" class="onboarding-copy">Đăng nhập để nhận đề xuất việc làm phù hợp.</p><form onsubmit="submitAuth(event)"><div class="onboarding-field"><label>Email</label><input id="auth-email" type="email" required placeholder="ban@example.com"></div><div class="onboarding-field"><label>Mật khẩu</label><input id="auth-password" type="password" required minlength="6" placeholder="Tối thiểu 6 ký tự"></div><button class="btn-next auth-submit" type="submit">Tiếp tục</button></form><button class="auth-switch" type="button" onclick="toggleAuthMode()" id="auth-switch">Chưa có tài khoản? Đăng ký</button></div></div>
+
+  <div class="onboarding-overlay" id="onboarding-overlay" aria-hidden="true">
+    <div class="onboarding-card">
+      <div class="onboarding-progress"><span id="onboarding-progress-bar"></span></div>
+      <button class="onboarding-close" type="button" onclick="closeOnboarding()" aria-label="Đóng">&times;</button>
+      <p class="onboarding-eyebrow">Cá nhân hóa hành trình</p>
+      <h2 id="onboarding-title">Bắt đầu bằng email của bạn</h2>
+      <p class="onboarding-copy" id="onboarding-copy">Chúng tôi sẽ dùng thông tin này để giới thiệu những vị trí phù hợp hơn.</p>
+      <div id="onboarding-step-content"></div>
+      <div class="onboarding-actions">
+        <button type="button" class="onboarding-secondary" id="onboarding-back" onclick="previousOnboardingStep()">Quay lại</button>
+        <button type="button" class="btn-next" id="onboarding-next" onclick="nextOnboardingStep()">Tiếp tục</button>
+      </div>
+      <p class="onboarding-privacy">Bạn có thể thay đổi lựa chọn bất cứ lúc nào trong phần cài đặt cookie.</p>
+    </div>
+  </div>
+
+  <div class="profile-modal" id="profile-modal" aria-hidden="true">
+    <div class="profile-card">
+      <button class="onboarding-close" type="button" onclick="closeProfileSettings(); document.getElementById('profile-modal')?.style.setProperty('display','none','important');">&times;</button>
+      <p class="onboarding-eyebrow">Cài đặt cá nhân</p><h2>Hồ sơ của tôi</h2>
+      <div class="profile-form" id="profile-form"></div>
+      <div class="profile-account-actions"><button type="button" onclick="switchAccount()">Chuyển tài khoản</button><button type="button" onclick="logoutUser()">Đăng xuất</button></div>
+      <div class="onboarding-actions"><button class="onboarding-secondary" type="button" onclick="closeProfileSettings()">Hủy</button><button class="btn-next" type="button" onclick="saveProfileSettings()">Lưu hồ sơ</button></div>
+    </div>
+  </div>
+
+  <div class="slider-container" id="slider">
+    <section class="slide" id="slide-1">
+      <div class="slide-content">
+        <h1>Khám Phá Văn Hoá Công Ty A</h1>
+        <p>Mỗi bước đi của chúng tôi là một câu chuyện về sự sáng tạo và khát vọng. Nơi bạn không chỉ làm việc, mà còn sống hết mình với đam mê.</p>
+        <button class="btn-next" onclick="startJourney()">Hành trình →</button>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-2">
+      <div class="slide-content">
+        <h1>Không Gian Làm Việc 3D</h1>
+        <p>Tự do trải nghiệm góc làm việc hiện đại, lựa chọn không gian khơi nguồn cảm hứng cho riêng bạn.</p>
+        <div id="workspace-3d-placeholder" style="width:100%; height:250px; background:#1e293b; border-radius:12px; margin-bottom:20px; display:flex; align-items:center; justify-content:center; border:2px dashed #38bdf8;">
+          <span>[Khu vực chọn vị trí ngồi &amp; Khung cảnh 3D]</span>
+        </div>
+        <button class="btn-next" onclick="nextSlide()">Xem Chế Độ &amp; Đãi Ngộ →</button>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-3">
+      <div class="slide-content">
+        <h1>Chính Sách &amp; Lộ Trình Phát Triển</h1>
+        <p>Chúng tôi coi trọng giá trị của bạn bằng những phúc lợi vượt trội, môi trường cởi mở và lộ trình thăng tiến rõ ràng.</p>
+        <button class="btn-next" onclick="nextSlide()">Lựa Chọn Vị Trí Phù Hợp →</button>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-4">
+      <div class="slide-content">
+        <h1>Tìm Vị Trí Của Bạn</h1>
+        <div id="job-cards-container" style="min-height:200px;"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal hidden" id="legacy-apply-modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <h2 style="margin-bottom:20px; color:#38bdf8;">Đơn Ứng Tuyển</h2>
+      <form id="legacy-recruitment-form">
+        <input type="hidden" id="legacy-form-job-name" name="job_title">
+        <div class="form-group">
+          <label>Họ và tên:</label>
+          <input type="text" id="legacy-candidate-name" name="name" required>
+        </div>
+        <div class="form-group">
+          <label>Email:</label>
+          <input type="email" id="legacy-candidate-email" name="email" required>
+        </div>
+        <div class="form-group">
+          <label>Số điện thoại:</label>
+          <input type="tel" id="legacy-candidate-phone" name="phone" required>
+        </div>
+        <div class="form-group">
+          <label>Tải CV (PDF/Word):</label>
+          <input type="file" id="legacy-cv-file" accept=".pdf,.doc,.docx" required>
+        </div>
+        <button type="submit" class="btn-next" style="width:100%; margin-top:10px;">Gửi Hồ Sơ</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal hidden application-modal" id="apply-modal">
+    <div class="modal-content application-content">
+      <button type="button" class="close-btn application-close" onclick="closeModal()" aria-label="Đóng">&times;</button>
+      <div class="application-header">
+        <p class="application-eyebrow">Ứng tuyển</p>
+        <h2 id="modal-job-title">Nộp hồ sơ ứng tuyển</h2>
+        <p class="application-job-subtitle" id="modal-job-subtitle">Hoàn thiện hồ sơ để nhà tuyển dụng liên hệ với bạn.</p>
+      </div>
+
+      <form id="recruitment-form" class="application-form">
+        <input type="hidden" id="form-job-name" name="job_title">
+
+        <section class="application-section">
+          <h3>Thông tin ứng viên</h3>
+          <div class="application-grid">
+            <div class="form-group">
+              <label>Họ và tên <span>*</span></label>
+              <input type="text" id="candidate-name" name="name" placeholder="Nhập họ và tên" required>
+            </div>
+            <div class="form-group">
+              <label>Email <span>*</span></label>
+              <input type="email" id="candidate-email" name="email" placeholder="email@example.com" required>
+            </div>
+            <div class="form-group">
+              <label>Số điện thoại <span>*</span></label>
+              <input type="tel" id="candidate-phone" name="phone" placeholder="Nhập số điện thoại" required>
+            </div>
+            <div class="form-group">
+              <label>Địa điểm làm việc mong muốn <span>*</span></label>
+              <select id="candidate-location" required>
+                <option value="">Chọn địa điểm bạn muốn làm việc</option>
+                <option value="Hà Nội / Hybrid">Hà Nội / Hybrid</option>
+                <option value="TP.HCM">TP.HCM</option>
+                <option value="Remote">Remote</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section class="application-section">
+          <h3>Chọn CV để ứng tuyển</h3>
+          <label class="cv-upload-card" for="cv-file">
+            <input type="file" id="cv-file" accept=".pdf,.doc,.docx" required>
+            <span class="cv-upload-icon">↑</span>
+            <strong>Tải lên CV từ máy tính, chọn hoặc kéo thả</strong>
+            <small>Hỗ trợ định dạng .pdf, .doc, .docx dưới 5MB</small>
+            <span class="cv-upload-button">Chọn CV</span>
+            <em id="cv-file-name">Chưa có file nào được chọn</em>
+          </label>
+        </section>
+
+        <section class="application-section">
+          <h3>Thư giới thiệu</h3>
+          <textarea id="candidate-cover-letter" placeholder="Nội dung thư giới thiệu"></textarea>
+        </section>
+
+        <section class="application-note">
+          <strong>Lưu ý:</strong>
+          <p>Hãy luôn cẩn trọng trong quá trình tìm việc và chủ động nghiên cứu thông tin công ty, vị trí việc làm trước khi ứng tuyển.</p>
+          <p>Ứng viên cần có trách nhiệm với hành vi ứng tuyển của mình. Nếu phát hiện dấu hiệu bất thường, hãy liên hệ nhà tuyển dụng để được hỗ trợ kịp thời.</p>
+        </section>
+
+        <label class="application-check">
+          <input type="checkbox" id="candidate-ai-consent">
+          <span>Cho phép hệ thống dùng công nghệ AI để phân tích độ phù hợp CV của bạn</span>
+        </label>
+
+        <label class="application-check">
+          <input type="checkbox" id="candidate-terms" required>
+          <span>Tôi đã đọc và đồng ý với thỏa thuận sử dụng dữ liệu cá nhân của Nhà tuyển dụng</span>
+        </label>
+
+        <button type="submit" class="application-submit">Nộp hồ sơ ứng tuyển</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="presentation-overlay" id="presentation-overlay" aria-hidden="true">
+    <div class="presentation-backdrop"></div>
+    <div class="presentation-shell">
+      <div class="presentation-topbar">
+        <div class="presentation-brand">
+          <span class="presentation-pill">Journey Mode</span>
+          <strong>Tuyển Dụng Công Ty A</strong>
+          <small class="presentation-source-note" id="presentation-source-note">Chưa có deck được upload</small>
+        </div>
+        <div class="presentation-tools">
+          <div class="presentation-dots" id="presentation-dots" aria-label="Tiến độ slide"></div>
+          <button type="button" class="presentation-exit" onclick="closePresentation()">Thoát</button>
+        </div>
+      </div>
+
+      <div class="presentation-stage-wrap" id="presentation-stage-wrap">
+        <div class="presentation-track" id="presentation-track">
+          <section class="presentation-slide is-active">
+            <div class="presentation-card presentation-hero">
+              <p class="eyebrow">Bước vào hành trình</p>
+              <h2>Khám Phá Văn Hoá Công Ty A</h2>
+              <p class="presentation-copy">Mỗi bước đi của chúng tôi là một câu chuyện về sự sáng tạo và khát vọng. Trình chiếu này được thiết kế như một trải nghiệm web liền mạch, không lộ dấu vết nhúng thô.</p>
+              <button type="button" class="btn-next" onclick="nextPresentationSlide()">Tiếp tục →</button>
+            </div>
+          </section>
+
+          <section class="presentation-slide">
+            <div class="presentation-card">
+              <p class="eyebrow">Không gian tạo lực</p>
+              <h2>Không Gian Làm Việc 3D</h2>
+              <p class="presentation-copy">Chọn góc làm việc khơi nguồn cảm hứng cho riêng bạn. Khu này có thể thay bằng slide PowerPoint xuất sang web sau này.</p>
+              <div class="workspace-hub">
+                <div class="workspace-panel" id="workspace-panel">
+                  <span id="workspace-label">[Khu vực chọn vị trí ngồi &amp; Khung cảnh 3D]</span>
+                  <strong id="workspace-panel-copy"></strong>
+                </div>
+                <div class="hotspot-row">
+                  <button type="button" class="hotspot-btn is-active" onclick="setWorkspaceFocus(0)">Cảnh quan</button>
+                  <button type="button" class="hotspot-btn" onclick="setWorkspaceFocus(1)">Bàn làm việc</button>
+                  <button type="button" class="hotspot-btn" onclick="setWorkspaceFocus(2)">Khu team</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="presentation-slide">
+            <div class="presentation-card">
+              <p class="eyebrow">Lợi thế nhân sự</p>
+              <h2>Chính Sách &amp; Lộ Trình Phát Triển</h2>
+              <p class="presentation-copy">Phúc lợi thực tế, lãnh đạo minh bạch và lộ trình thăng tiến rõ ràng.</p>
+              <div class="benefit-grid">
+                <div class="benefit-card">
+                  <strong>01</strong>
+                  <span>Lương về nhanh</span>
+                </div>
+                <div class="benefit-card">
+                  <strong>02</strong>
+                  <span>Mentor 1:1</span>
+                </div>
+                <div class="benefit-card">
+                  <strong>03</strong>
+                  <span>Thưởng hiệu suất</span>
+                </div>
+              </div>
+              <button type="button" class="btn-next" onclick="nextPresentationSlide()">Xem vị trí →</button>
+            </div>
+          </section>
+
+          <section class="presentation-slide">
+            <div class="presentation-card">
+              <p class="eyebrow">Cơ hội đồng hành</p>
+              <h2>Tìm Vị Trí Của Bạn</h2>
+              <div id="presentation-job-card"></div>
+              <div class="presentation-actions">
+                <button type="button" class="btn-next" onclick="prevPresentationJob()">Vị trí trước</button>
+                <button type="button" class="btn-next" onclick="nextPresentationJob()">Vị trí tiếp</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="presentation-footer">
+        <button type="button" class="presentation-nav" onclick="prevPresentationSlide()">←</button>
+        <button type="button" class="presentation-nav" onclick="nextPresentationSlide()">→</button>
+      </div>
+    </div>
+  </div>
+
+  <script>window.showProfileModal = function () { const modal = document.getElementById('profile-modal'); if (!modal) return; modal.classList.add('is-open'); modal.setAttribute('aria-hidden', 'false'); if (typeof window.openProfileSettings === 'function') window.openProfileSettings(); };</script>
+  <script src="jobs.js?v=13"></script>
+  <script src="app.js?v=46"></script>
+</body>
+</html>

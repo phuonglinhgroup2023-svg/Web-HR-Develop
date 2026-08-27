@@ -1,0 +1,69 @@
+{
+  "thanhthao79202@gmail.com": {
+    "email": "thanhthao79202@gmail.com",
+    "category": "marketing",
+    "level": "",
+    "location": "",
+    "workType": "",
+    "interests": [
+      "design"
+    ],
+    "updatedAt": "2026-08-26T17:08:38.511Z"
+  },
+  "dddd@gmaiil.com": {
+    "email": "dddd@gmaiil.com",
+    "category": "design",
+    "level": "",
+    "location": "",
+    "workType": "",
+    "interests": [
+      "design"
+    ],
+    "updatedAt": "2026-08-26T17:15:40.299Z"
+  },
+  "phuonglinhgroup2023@gmail.com": {
+    "email": "phuonglinhgroup2023@gmail.com",
+    "category": "technology",
+    "level": "junior",
+    "location": "Hà Nội",
+    "workType": "",
+    "interests": [
+      "design"
+    ],
+    "updatedAt": "2026-08-26T17:24:20.603Z"
+  },
+  "jjjj@gmail.com": {
+    "email": "jjjj@gmail.com",
+    "category": "technology",
+    "level": "junior",
+    "location": "Hà Nội",
+    "workType": "",
+    "interests": [
+      "javascript"
+    ],
+    "updatedAt": "2026-08-27T16:40:44.596Z"
+  },
+  "f@gmail.com": {
+    "email": "f@gmail.com",
+    "category": "technology",
+    "level": "junior",
+    "location": "Hà Nội",
+    "workType": "hybrid",
+    "interests": [
+      "javascript"
+    ],
+    "updatedAt": "2026-08-27T17:05:48.037Z"
+  },
+  "d@gmail.com": {
+    "email": "d@gmail.com",
+    "category": "design",
+    "level": "junior",
+    "location": "Hà Nội",
+    "workType": "hybrid",
+    "interests": [
+      "design"
+    ],
+    "completed": true,
+    "updatedAt": "2026-08-27T17:18:43.640Z"
+  }
+}

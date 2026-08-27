@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Upload Journey Video</title>
+  <link rel="stylesheet" href="style.css?v=11">
+</head>
+<body class="admin-page">
+  <main class="admin-shell">
+    <div class="admin-header">
+      <div>
+        <p class="eyebrow">Admin Panel</p>
+        <h1>Upload Journey Video</h1>
+        <p class="admin-note">
+          Tải file PowerPoint lên đây để mở khóa phần Hành trình ở trang chính. File sẽ được lưu trong trình duyệt của cùng domain để trang public biết deck đã sẵn sàng.
+        </p>
+      </div>
+      <div class="admin-status" id="admin-status">Chưa có deck</div>
+    </div>
+
+    <section class="admin-panel">
+      <div class="upload-box">
+        <div class="upload-row">
+          <label for="pptx-file">Chọn file PowerPoint (.pptx)</label>
+          <input type="file" id="pptx-file" accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg">
+        </div>
+
+        <div class="admin-actions" style="margin-top:16px;">
+          <button type="button" class="admin-btn" id="upload-btn">Upload video</button>
+          <button type="button" class="admin-btn secondary" id="clear-btn">Xóa deck</button>
+        </div>
+      </div>
+
+      <div class="admin-preview">
+        <div class="admin-preview-item" id="admin-preview-item">Chưa có file nào được upload.</div>
+      </div>
+    </section>
+  </main>
+
+  <script src="admin.js?v=11"></script>
+</body>
+</html>
