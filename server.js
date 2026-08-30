@@ -1,6 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { spawnSync } = require('child_process');
 
 const rootDir = __dirname;
@@ -11,6 +12,10 @@ const videoDir = path.join(storageDir, 'video');
 const tempDir = path.join(storageDir, 'tmp');
 const manifestPath = path.join(storageDir, 'presentation-manifest.json');
 const profilesPath = path.join(storageDir, 'user-profiles.json');
+const accountsPath = path.join(storageDir, 'accounts.json');
+const authSecretPath = path.join(storageDir, '.auth-secret');
+const eventsPath = path.join(storageDir, 'user-events.json');
+const adminAccountsPath = path.join(storageDir, 'admin-accounts.json');
 const port = Number(process.env.PORT || 3000);
 const googleSlidesBridgeUrl = process.env.GOOGLE_SLIDES_BRIDGE_URL || '';
 
@@ -40,6 +45,93 @@ function sendJson(res, statusCode, data) {
 function sendText(res, statusCode, text, contentType = 'text/plain; charset=utf-8') {
   res.writeHead(statusCode, { 'Content-Type': contentType });
   res.end(text);
+}
+
+function readJsonFile(filePath, fallback) {
+  try {
+    return fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath, 'utf8')) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeJsonFile(filePath, value) {
+  fs.writeFileSync(filePath, JSON.stringify(value, null, 2), 'utf8');
+}
+
+function getAuthSecret() {
+  if (!fs.existsSync(authSecretPath)) fs.writeFileSync(authSecretPath, crypto.randomBytes(32).toString('hex'), 'utf8');
+  return fs.readFileSync(authSecretPath, 'utf8').trim();
+}
+
+function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
+  return { passwordSalt: salt, passwordHash: crypto.scryptSync(password, salt, 64).toString('hex') };
+}
+
+function verifyPassword(password, account) {
+  const storedHash = account?.passwordHash || account?.hash;
+  const storedSalt = account?.passwordSalt || account?.salt;
+  if (!storedHash || !storedSalt) return false;
+  const candidate = crypto.scryptSync(password, storedSalt, 64).toString('hex');
+  return candidate.length === storedHash.length && crypto.timingSafeEqual(Buffer.from(candidate, 'hex'), Buffer.from(storedHash, 'hex'));
+}
+
+function parseCookies(req) {
+  return Object.fromEntries((req.headers.cookie || '').split(';').filter(Boolean).map((part) => {
+    const index = part.indexOf('=');
+    return [part.slice(0, index).trim(), decodeURIComponent(part.slice(index + 1).trim())];
+  }));
+}
+
+function createSessionToken(email) {
+  const payload = Buffer.from(JSON.stringify({ email, exp: Date.now() + 7 * 86400000 })).toString('base64url');
+  const signature = crypto.createHmac('sha256', getAuthSecret()).update(payload).digest('base64url');
+  return `${payload}.${signature}`;
+}
+
+function getSessionEmail(req) {
+  const token = parseCookies(req).recruitment_session;
+  if (!token) return null;
+  const [payload, signature] = token.split('.');
+  if (!payload || !signature) return null;
+  const expected = crypto.createHmac('sha256', getAuthSecret()).update(payload).digest('base64url');
+  if (signature.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return null;
+  try {
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    return data.exp > Date.now() ? String(data.email).toLowerCase() : null;
+  } catch { return null; }
+}
+
+function setSessionCookie(res, email) {
+  res.setHeader('Set-Cookie', `recruitment_session=${encodeURIComponent(createSessionToken(email))}; HttpOnly; SameSite=Lax; Path=/; Max-Age=604800`);
+}
+
+function clearSessionCookie(res) {
+  res.setHeader('Set-Cookie', 'recruitment_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0');
+}
+
+function createAdminToken(email) {
+  const payload = Buffer.from(JSON.stringify({ email, exp: Date.now() + 7 * 86400000, scope: 'admin' })).toString('base64url');
+  const signature = crypto.createHmac('sha256', getAuthSecret()).update(payload).digest('base64url');
+  return `${payload}.${signature}`;
+}
+
+function getAdminEmail(req) {
+  const token = parseCookies(req).admin_session;
+  if (!token) return null;
+  const [payload, signature] = token.split('.');
+  if (!payload || !signature) return null;
+  const expected = crypto.createHmac('sha256', getAuthSecret()).update(payload).digest('base64url');
+  if (signature.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return null;
+  try { const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')); return data.scope === 'admin' && data.exp > Date.now() ? String(data.email).toLowerCase() : null; } catch { return null; }
+}
+
+function setAdminCookie(res, email) { res.setHeader('Set-Cookie', `admin_session=${encodeURIComponent(createAdminToken(email))}; HttpOnly; SameSite=Lax; Path=/; Max-Age=604800`); }
+function clearAdminCookie(res) { res.setHeader('Set-Cookie', 'admin_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0'); }
+
+function publicAccount(account) {
+  if (!account) return null;
+  return { email: account.email, profile: account.profile || {}, createdAt: account.createdAt };
 }
 
 function mimeFor(filePath) {
@@ -452,24 +544,24 @@ function convertPptxToSlides(inputFile, deckId) {
   };
 }
 
-function clearPresentation() {
+function clearPresentationSlot(slot = 'intro') {
   const manifest = readManifest();
-  if (manifest?.deckId) {
-    removeDirRecursive(path.join(decksDir, manifest.deckId));
+  const item = manifest?.videos?.[slot];
+  if (item?.videoUrl) {
+    const fileName = decodeURIComponent(item.videoUrl.split('/').pop());
+    const filePath = safeJoin(videoDir, fileName);
+    if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
   }
-  if (fs.existsSync(manifestPath)) {
-    fs.unlinkSync(manifestPath);
-  }
-  if (fs.existsSync(sourceDir)) {
-    for (const file of fs.readdirSync(sourceDir)) {
-      fs.unlinkSync(path.join(sourceDir, file));
-    }
-  }
-  if (fs.existsSync(videoDir)) {
-    for (const file of fs.readdirSync(videoDir)) {
-      fs.unlinkSync(path.join(videoDir, file));
-    }
-  }
+  if (!manifest) return;
+  manifest.videos = { ...(manifest.videos || {}) };
+  delete manifest.videos[slot];
+  const intro = manifest.videos.intro;
+  manifest.ready = Object.keys(manifest.videos).length > 0;
+  manifest.slides = intro?.videoUrl ? [intro.videoUrl] : [];
+  manifest.sourceName = intro?.sourceName || '';
+  manifest.videoUrl = intro?.videoUrl || '';
+  manifest.slideCount = manifest.slides.length;
+  if (manifest.ready) writeManifest(manifest); else if (fs.existsSync(manifestPath)) fs.unlinkSync(manifestPath);
 }
 
 function latestSourcePptx() {
@@ -600,7 +692,170 @@ const server = http.createServer((req, res) => {
       sendJson(res, 404, { ready: false });
       return;
     }
+    if (!manifest.videos && manifest.videoUrl) {
+      manifest.videos = { intro: { slot: 'intro', sourceName: manifest.sourceName || 'Video mở đầu', uploadedAt: manifest.uploadedAt, videoUrl: manifest.videoUrl } };
+    }
     sendJson(res, 200, manifest);
+    return;
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/auth/register') {
+    readJsonBody(req, (parseError, body) => {
+      const email = String(body?.email || '').trim().toLowerCase();
+      const password = String(body?.password || '');
+      if (parseError || !/^\S+@\S+\.\S+$/.test(email) || password.length < 6) {
+        sendJson(res, 400, { ok: false, error: 'Email hoặc mật khẩu không hợp lệ.' });
+        return;
+      }
+      const accounts = readJsonFile(accountsPath, {});
+      if (accounts[email]) {
+        sendJson(res, 409, { ok: false, error: 'Email này đã được đăng ký.' });
+        return;
+      }
+      const passwordData = hashPassword(password);
+      accounts[email] = { email, ...passwordData, profile: { email, completed: false }, createdAt: new Date().toISOString() };
+      writeJsonFile(accountsPath, accounts);
+      setSessionCookie(res, email);
+      sendJson(res, 201, { ok: true, account: publicAccount(accounts[email]) });
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/auth/login') {
+    readJsonBody(req, (parseError, body) => {
+      const email = String(body?.email || '').trim().toLowerCase();
+      const password = String(body?.password || '');
+      const accounts = readJsonFile(accountsPath, {});
+      const account = accounts[email];
+      if (parseError || !account || !verifyPassword(password, account)) {
+        sendJson(res, 401, { ok: false, error: 'Email hoặc mật khẩu không đúng.' });
+        return;
+      }
+      setSessionCookie(res, email);
+      sendJson(res, 200, { ok: true, account: publicAccount(account) });
+    });
+    return;
+  }
+
+  // Chuyển tài khoản cũ được lưu trong localStorage sang tài khoản server một lần.
+  if (req.method === 'POST' && url.pathname === '/api/auth/migrate') {
+    readJsonBody(req, (parseError, body) => {
+      const email = String(body?.email || '').trim().toLowerCase();
+      const password = String(body?.password || '');
+      const profile = body?.profile && typeof body.profile === 'object' ? body.profile : { email };
+      if (parseError || !/^\S+@\S+\.\S+$/.test(email) || password.length < 6) {
+        sendJson(res, 400, { ok: false, error: 'Thông tin chuyển tài khoản không hợp lệ.' });
+        return;
+      }
+      const accounts = readJsonFile(accountsPath, {});
+      if (!accounts[email]) {
+        const passwordData = hashPassword(password);
+        accounts[email] = { email, ...passwordData, profile: { ...profile, email }, createdAt: new Date().toISOString() };
+        writeJsonFile(accountsPath, accounts);
+      }
+      if (!verifyPassword(password, accounts[email])) {
+        sendJson(res, 401, { ok: false, error: 'Email hoặc mật khẩu không đúng.' });
+        return;
+      }
+      setSessionCookie(res, email);
+      sendJson(res, 200, { ok: true, account: publicAccount(accounts[email]), migrated: true });
+    });
+    return;
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/auth/me') {
+    const email = getSessionEmail(req);
+    const accounts = readJsonFile(accountsPath, {});
+    if (!email || !accounts[email]) { sendJson(res, 401, { ok: false }); return; }
+    sendJson(res, 200, { ok: true, account: publicAccount(accounts[email]) });
+    return;
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/auth/logout') {
+    clearSessionCookie(res);
+    sendJson(res, 200, { ok: true });
+    return;
+  }
+
+  if (req.method === 'PUT' && url.pathname === '/api/auth/profile') {
+    const email = getSessionEmail(req);
+    const accounts = readJsonFile(accountsPath, {});
+    if (!email || !accounts[email]) { sendJson(res, 401, { ok: false, error: 'Phiên đăng nhập đã hết hạn.' }); return; }
+    readJsonBody(req, (parseError, profile) => {
+      if (parseError || !profile || typeof profile !== 'object') { sendJson(res, 400, { ok: false, error: 'Hồ sơ không hợp lệ.' }); return; }
+      accounts[email].profile = { ...accounts[email].profile, ...profile, email };
+      writeJsonFile(accountsPath, accounts);
+      sendJson(res, 200, { ok: true, account: publicAccount(accounts[email]) });
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/events') {
+    const email = getSessionEmail(req);
+    if (!email) { sendJson(res, 401, { ok: false, error: 'Cần đăng nhập để ghi nhận hành vi.' }); return; }
+    readJsonBody(req, (parseError, event) => {
+      const type = String(event?.type || '').trim().toLowerCase();
+      const jobId = String(event?.jobId || '').trim();
+      if (parseError || !['view', 'like', 'skip', 'follow', 'apply'].includes(type) || !jobId) {
+        sendJson(res, 400, { ok: false, error: 'Sự kiện không hợp lệ.' }); return;
+      }
+      const events = readJsonFile(eventsPath, []);
+      events.push({ email, type, jobId, jobTitle: String(event.jobTitle || '').slice(0, 200), timestamp: new Date().toISOString() });
+      writeJsonFile(eventsPath, events.slice(-50000));
+      sendJson(res, 201, { ok: true });
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/admin/register') {
+    readJsonBody(req, (parseError, body) => {
+      const email = String(body?.email || '').trim().toLowerCase();
+      const password = String(body?.password || '');
+      const admins = readJsonFile(adminAccountsPath, {});
+      if (parseError || !/^\S+@\S+\.\S+$/.test(email) || password.length < 8) { sendJson(res, 400, { ok: false, error: 'Email hoặc mật khẩu admin không hợp lệ.' }); return; }
+      if (admins[email]) { sendJson(res, 409, { ok: false, error: 'Admin này đã tồn tại.' }); return; }
+      const passwordData = hashPassword(password);
+      admins[email] = { email, ...passwordData, createdAt: new Date().toISOString() };
+      writeJsonFile(adminAccountsPath, admins); setAdminCookie(res, email); sendJson(res, 201, { ok: true, email });
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/admin/login') {
+    readJsonBody(req, (parseError, body) => {
+      const email = String(body?.email || '').trim().toLowerCase();
+      const admins = readJsonFile(adminAccountsPath, {});
+      if (parseError || !admins[email] || !verifyPassword(String(body?.password || ''), admins[email])) { sendJson(res, 401, { ok: false, error: 'Email hoặc mật khẩu admin không đúng.' }); return; }
+      setAdminCookie(res, email); sendJson(res, 200, { ok: true, email });
+    });
+    return;
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/admin/me') {
+    const email = getAdminEmail(req); sendJson(res, email ? 200 : 401, email ? { ok: true, email } : { ok: false }); return;
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/admin/logout') { clearAdminCookie(res); sendJson(res, 200, { ok: true }); return; }
+
+  if (req.method === 'GET' && url.pathname === '/api/admin/overview') {
+    if (!getAdminEmail(req)) { sendJson(res, 401, { ok: false, error: 'Cần đăng nhập admin.' }); return; }
+    const accounts = readJsonFile(accountsPath, {});
+    const profiles = readJsonFile(profilesPath, {});
+    const events = readJsonFile(eventsPath, []);
+    const users = Object.values(accounts).map((account) => ({
+      email: account.email,
+      profile: { ...(profiles[account.email] || {}), ...(account.profile || {}) },
+      createdAt: account.createdAt,
+    }));
+    const byType = Object.fromEntries(['view', 'like', 'skip', 'follow', 'apply'].map((type) => [type, events.filter((event) => event.type === type).length]));
+    const popularJobs = Object.values(events.reduce((result, event) => {
+      const key = event.jobId;
+      result[key] ||= { jobId: key, jobTitle: event.jobTitle || key, views: 0, likes: 0, skips: 0, follows: 0, applies: 0 };
+      const field = `${event.type}s`;
+      if (field in result[key]) result[key][field] += 1;
+      return result;
+    }, {})).sort((a, b) => b.views - a.views || b.likes - a.likes);
+    sendJson(res, 200, { ok: true, generatedAt: new Date().toISOString(), totals: { users: users.length, events: events.length, ...byType }, users, popularJobs, recentEvents: events.slice(-100).reverse() });
     return;
   }
 
@@ -622,8 +877,11 @@ const server = http.createServer((req, res) => {
   }
 
   if (req.method === 'POST' && url.pathname === '/api/clear-presentation') {
+    if (!getAdminEmail(req)) { sendJson(res, 401, { ok: false, error: 'Cần đăng nhập admin.' }); return; }
     try {
-      clearPresentation();
+      const slot = String(url.searchParams.get('slot') || 'intro');
+      if (!/^[a-z0-9-]+$/.test(slot)) { sendJson(res, 400, { ok: false, error: 'Mục video không hợp lệ.' }); return; }
+      clearPresentationSlot(slot);
       sendJson(res, 200, { ok: true });
     } catch (error) {
       sendJson(res, 500, { ok: false, error: error.message });
@@ -632,6 +890,7 @@ const server = http.createServer((req, res) => {
   }
 
   if (req.method === 'POST' && url.pathname === '/api/upload-presentation') {
+    if (!getAdminEmail(req)) { sendJson(res, 401, { ok: false, error: 'Cần đăng nhập admin.' }); return; }
     const contentType = req.headers['content-type'] || '';
     const boundaryMatch = contentType.match(/boundary=(?:(?:"([^"]+)")|([^;]+))/i);
     if (!boundaryMatch) {
@@ -648,7 +907,6 @@ const server = http.createServer((req, res) => {
         const parsed = parseMultipart(buffer, boundary);
         if (!parsed.fileName) throw new Error('File name missing');
 
-        clearPresentation();
         const safeName = parsed.fileName.replace(/[<>:"/\\|?*]+/g, '_');
         if (!/\.(mp4|webm|ogg)$/i.test(safeName)) {
           throw new Error('Chỉ hỗ trợ video MP4, WebM hoặc OGG.');
@@ -656,18 +914,23 @@ const server = http.createServer((req, res) => {
         const videoName = `${Date.now()}-${safeName}`;
         fs.writeFileSync(path.join(videoDir, videoName), parsed.data);
 
-        const manifest = {
-          ready: true,
-          sourceName: parsed.fileName,
-          uploadedAt: new Date().toISOString(),
-          slideCount: 1,
-          renderMode: 'video',
-          videoUrl: `/storage/video/${encodeURIComponent(videoName)}`,
-          slides: [`/storage/video/${encodeURIComponent(videoName)}`],
-        };
+        const slot = String(url.searchParams.get('slot') || 'intro');
+        if (!/^[a-z0-9-]+$/.test(slot)) throw new Error('Mục video không hợp lệ.');
+        const manifest = readManifest() || { renderMode: 'video', videos: {} };
+        manifest.renderMode = 'video';
+        manifest.videos = { ...(manifest.videos || {}) };
+        const videoUrl = `/storage/video/${encodeURIComponent(videoName)}`;
+        manifest.videos[slot] = { slot, sourceName: parsed.fileName, uploadedAt: new Date().toISOString(), videoUrl };
+        const intro = manifest.videos.intro;
+        manifest.ready = true;
+        manifest.sourceName = intro?.sourceName || parsed.fileName;
+        manifest.uploadedAt = new Date().toISOString();
+        manifest.slideCount = intro ? 1 : 0;
+        manifest.videoUrl = intro?.videoUrl || '';
+        manifest.slides = intro?.videoUrl ? [intro.videoUrl] : [];
 
         writeManifest(manifest);
-        sendJson(res, 200, manifest);
+        sendJson(res, 200, { ...manifest, slot });
       } catch (error) {
         console.error(error);
         sendJson(res, 500, { ok: false, error: error.message });

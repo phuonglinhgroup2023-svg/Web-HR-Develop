@@ -2,3 +2,7 @@
 # Local Google Apps Script deployment URL
 .env
 
+# Local authentication data (never commit passwords, hashes or session secret)
+storage/accounts.json
+storage/.auth-secret
+

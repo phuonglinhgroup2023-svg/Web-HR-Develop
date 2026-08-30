@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="style.css?v=26">
 </head>
 <body>
-  <div class="build-badge">WEB DECK v8</div>
+  <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
   <div class="account-actions" id="account-actions"><button type="button" onclick="openAuthModal('login')">Đăng nhập</button><button type="button" class="account-register" onclick="openAuthModal('register')">Đăng ký</button></div>
   <button class="profile-open-button" id="profile-open-button" type="button" onclick="showProfileModal()">Hồ sơ của tôi</button>
 
@@ -276,6 +276,6 @@
 
   <script>window.showProfileModal = function () { const modal = document.getElementById('profile-modal'); if (!modal) return; modal.classList.add('is-open'); modal.setAttribute('aria-hidden', 'false'); if (typeof window.openProfileSettings === 'function') window.openProfileSettings(); };</script>
   <script src="jobs.js?v=13"></script>
-  <script src="app.js?v=46"></script>
+  <script src="app.js?v=51"></script>
 </body>
 </html>

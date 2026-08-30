@@ -3,41 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Upload Journey Video</title>
-  <link rel="stylesheet" href="style.css?v=11">
+  <title>Recruitment Story - Quản trị</title>
+  <link rel="stylesheet" href="style.css?v=14">
 </head>
 <body class="admin-page">
-  <main class="admin-shell">
-    <div class="admin-header">
-      <div>
-        <p class="eyebrow">Admin Panel</p>
-        <h1>Upload Journey Video</h1>
-        <p class="admin-note">
-          Tải file PowerPoint lên đây để mở khóa phần Hành trình ở trang chính. File sẽ được lưu trong trình duyệt của cùng domain để trang public biết deck đã sẵn sàng.
-        </p>
-      </div>
-      <div class="admin-status" id="admin-status">Chưa có deck</div>
+  <section class="admin-auth" id="admin-auth" aria-live="polite">
+    <div class="admin-auth-card">
+      <p class="eyebrow">Khu vực bảo mật</p>
+      <h1 id="admin-auth-title">Đăng nhập quản trị</h1>
+      <p class="admin-note" id="admin-auth-note">Chỉ tài khoản admin mới có thể truy cập dashboard.</p>
+      <form id="admin-auth-form">
+        <label>Email admin<input id="admin-email" type="email" required autocomplete="username"></label>
+        <label>Mật khẩu<input id="admin-password" type="password" required minlength="8" autocomplete="current-password"></label>
+        <button class="admin-btn" type="submit" id="admin-auth-submit">Đăng nhập</button>
+      </form>
+      <button class="admin-auth-switch" type="button" id="admin-auth-switch">Thiết lập admin đầu tiên</button>
+      <p class="admin-auth-error" id="admin-auth-error"></p>
     </div>
-
+  </section>
+  <main class="admin-shell" id="admin-app" hidden>
+    <header class="admin-header">
+      <div><p class="eyebrow">Admin Panel</p><h1>Trung tâm quản trị</h1><p class="admin-note">Quản lý nội dung hành trình và theo dõi tổng hợp tài khoản, hành vi người dùng trong một màn hình.</p></div>
+      <div><div class="admin-status" id="admin-status">Đang tải báo cáo…</div><button class="admin-logout" id="admin-logout" type="button">Đăng xuất admin</button></div>
+    </header>
+    <section class="admin-stats" id="admin-stats"></section>
     <section class="admin-panel">
-      <div class="upload-box">
-        <div class="upload-row">
-          <label for="pptx-file">Chọn file PowerPoint (.pptx)</label>
-          <input type="file" id="pptx-file" accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg">
-        </div>
-
-        <div class="admin-actions" style="margin-top:16px;">
-          <button type="button" class="admin-btn" id="upload-btn">Upload video</button>
-          <button type="button" class="admin-btn secondary" id="clear-btn">Xóa deck</button>
-        </div>
-      </div>
-
-      <div class="admin-preview">
-        <div class="admin-preview-item" id="admin-preview-item">Chưa có file nào được upload.</div>
-      </div>
+      <div class="admin-panel-heading"><div><h2>Nội dung hành trình</h2><p class="admin-note">Đăng video để hiển thị trên trang public.</p></div><div class="admin-preview-item" id="admin-preview-item">Chưa có video.</div></div>
+      <div class="upload-box"><div class="upload-row"><label for="video-slot">Chọn loại video</label><select id="video-slot"><option value="intro">Video giới thiệu không gian công ty (chỉ 1 video)</option><option value="job-default">Video mô tả job mặc định</option><option value="job-01">Job 01 - Chuyên viên lập trình Web</option><option value="job-02">Job 02 - Thiết kế nội thất 3D</option></select><label for="pptx-file">Chọn video</label><input type="file" id="pptx-file" accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg"></div><div class="admin-actions"><button type="button" class="admin-btn" id="upload-btn">Upload video cho mục đã chọn</button><button type="button" class="admin-btn secondary" id="clear-btn">Xóa video mục đã chọn</button></div><div class="admin-video-list" id="admin-video-list"></div></div>
     </section>
+    <section class="admin-report-grid">
+      <div class="admin-panel"><div class="admin-panel-heading"><h2>Job được quan tâm</h2><button class="admin-btn secondary" id="download-report-btn" type="button">Tải Excel (CSV)</button></div><div class="admin-table-wrap"><table><thead><tr><th>Job</th><th>Lượt xem</th><th>Thích</th><th>Bỏ qua</th></tr></thead><tbody id="popular-jobs-body"><tr><td colspan="4">Đang tải…</td></tr></tbody></table></div></div>
+      <div class="admin-panel"><h2>Hồ sơ người dùng</h2><div class="admin-table-wrap"><table><thead><tr><th>Email</th><th>Nhóm nghề</th><th>Địa điểm</th><th>Hình thức</th></tr></thead><tbody id="users-body"><tr><td colspan="4">Đang tải…</td></tr></tbody></table></div></div>
+    </section>
+    <section class="admin-panel"><h2>Hoạt động gần đây</h2><div class="admin-table-wrap"><table><thead><tr><th>Thời gian</th><th>Email</th><th>Hành động</th><th>Job</th></tr></thead><tbody id="events-body"><tr><td colspan="4">Đang tải…</td></tr></tbody></table></div></section>
   </main>
-
-  <script src="admin.js?v=11"></script>
+  <script src="admin.js?v=17"></script>
 </body>
 </html>

@@ -56,14 +56,14 @@
   },
   "d@gmail.com": {
     "email": "d@gmail.com",
-    "category": "design",
-    "level": "junior",
+    "category": "marketing",
+    "level": "mid",
     "location": "Hà Nội",
-    "workType": "hybrid",
+    "workType": "remote",
     "interests": [
-      "design"
+      "3d"
     ],
     "completed": true,
-    "updatedAt": "2026-08-27T17:18:43.640Z"
+    "updatedAt": "2026-08-29T16:35:31.452Z"
   }
 }

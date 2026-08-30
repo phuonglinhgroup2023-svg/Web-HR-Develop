@@ -11,6 +11,8 @@ let onboardingStep = 0;
 let onboardingDraft = { email: '', category: '', level: '', location: '', workType: '', interests: [] };
 let rankedJobs = [];
 let authMode = 'login';
+let controlsMoveFrame = 0;
+function showToast(message, type = 'info') { const region = document.getElementById('toast-region'); if (!region) return; const toast = document.createElement('div'); toast.className = `toast${type === 'error' ? ' is-error' : type === 'success' ? ' is-success' : ''}`; toast.textContent = message; region.appendChild(toast); window.setTimeout(() => toast.remove(), 3600); }
 
 const ONBOARDING_KEY = 'recruitment_user_profile_v1';
 const ACCOUNTS_KEY = 'recruitment_accounts_v1';
@@ -43,6 +45,9 @@ function logUserEvent(type, job) {
   try { events = JSON.parse(localStorage.getItem('recruitment_job_events') || '[]'); } catch {}
   events.push({ type, jobId: job?.id || '', timestamp: new Date().toISOString() });
   localStorage.setItem('recruitment_job_events', JSON.stringify(events.slice(-100)));
+  if (getUserProfile()?.email && job?.id) {
+    authRequest('/api/events', { method: 'POST', body: JSON.stringify({ type, jobId: job.id, jobTitle: job.title || '' }) }).catch(() => {});
+  }
 }
 
 function getUserProfile() {
@@ -50,6 +55,27 @@ function getUserProfile() {
 }
 function getAccounts() { try { return JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || '{}'); } catch { return {}; } }
 async function hashPassword(password) { const data = new TextEncoder().encode(password); const digest = await crypto.subtle.digest('SHA-256', data); return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join(''); }
+
+async function authRequest(path, options = {}) {
+  const response = await fetch(path, { credentials: 'same-origin', ...options, headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'Không thể kết nối máy chủ.');
+  return data;
+}
+
+function applyAuthenticatedAccount(account) {
+  const profile = { ...(account?.profile || {}), email: account?.email || account?.profile?.email || '' };
+  localStorage.setItem('recruitment_account_email', profile.email);
+  localStorage.setItem(ONBOARDING_KEY, JSON.stringify(profile));
+  onboardingDraft = { ...profile, interests: [...(profile.interests || [])] };
+  syncAccountUI();
+  return profile;
+}
+
+async function restoreAuthSession() {
+  try { applyAuthenticatedAccount((await authRequest('/api/auth/me', { method: 'GET', headers: {} })).account); }
+  catch { localStorage.removeItem(ONBOARDING_KEY); localStorage.removeItem('recruitment_account_email'); syncAccountUI(); }
+}
 
 function syncAccountUI() {
   const loggedIn = Boolean(getUserProfile());
@@ -178,7 +204,126 @@ function nextOnboardingStep() {
   rankJobsForUser(); closeOnboarding(); startJourney(true);
 }
 
-const GOOGLE_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwj1cLnIFwrqfA5SiMFa3uRBztKNoO9EssCbnJJlqaWm2g9mqwPo8Sw5kd02MA96pE/exec";
+// Auth mới dùng cookie phiên do server ký; các hàm này ghi đè luồng localStorage cũ.
+async function submitAuth(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const button = form.querySelector('.auth-submit');
+  const email = document.getElementById('auth-email').value.trim().toLowerCase();
+  const password = document.getElementById('auth-password').value;
+  if (!/^\S+@\S+\.\S+$/.test(email)) { showToast('Vui lòng nhập email hợp lệ.', 'error'); return; }
+  if (password.length < 6) { showToast('Mật khẩu cần có ít nhất 6 ký tự.', 'error'); return; }
+  button?.setAttribute('disabled', 'disabled');
+  try {
+    let result;
+    if (authMode === 'register') {
+      result = await authRequest('/api/auth/register', { method: 'POST', body: JSON.stringify({ email, password }) });
+    } else {
+      try {
+        result = await authRequest('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+      } catch (error) {
+        const legacy = getAccounts()[email];
+        const legacyHash = legacy?.passwordHash ? await hashPassword(password) : '';
+        // Bản cũ từng ghi đè account khi hoàn tất onboarding và làm mất passwordHash.
+        // Nếu email đã tồn tại trong trình duyệt hiện tại, cho phép thiết lập lại mật khẩu
+        // một lần rồi chuyển tài khoản lên server.
+        if (!legacy || (legacy.passwordHash && legacyHash !== legacy.passwordHash)) throw error;
+        result = await authRequest('/api/auth/migrate', { method: 'POST', body: JSON.stringify({ email, password, profile: legacy.profile || {} }) });
+      }
+    }
+    const profile = applyAuthenticatedAccount(result.account);
+    closeAuthModal();
+    if (authMode === 'login' && profile.completed) { showToast('Đăng nhập thành công.', 'success'); return; }
+    onboardingStep = authMode === 'register' ? 0 : 1;
+    onboardingDraft.email = email;
+    openOnboarding();
+  } catch (error) { showToast(error.message, 'error'); }
+  finally { button?.removeAttribute('disabled'); }
+}
+
+async function logoutUser() {
+  try { await authRequest('/api/auth/logout', { method: 'POST', body: '{}' }); } catch {}
+  localStorage.removeItem(ONBOARDING_KEY);
+  localStorage.removeItem('recruitment_account_email');
+  localStorage.removeItem('recruitment_job_events');
+  closeProfileSettings(); closeAuthModal(); rankedJobs = []; syncAccountUI();
+  showToast('Bạn đã đăng xuất khỏi tài khoản.', 'success');
+}
+
+async function saveProfileSettings() {
+  const profile = getUserProfile() || {};
+  profile.email = document.getElementById('profile-email').value.trim().toLowerCase();
+  profile.category = document.getElementById('profile-category').value;
+  profile.location = document.getElementById('profile-location').value;
+  profile.workType = document.getElementById('profile-work-type').value;
+  profile.interests = document.getElementById('profile-interests').value.split(',').map((x) => x.trim().toLowerCase()).filter(Boolean);
+  if (!/^\S+@\S+\.\S+$/.test(profile.email)) { showToast('Email không hợp lệ.', 'error'); return; }
+  try {
+    const result = await authRequest('/api/auth/profile', { method: 'PUT', body: JSON.stringify(profile) });
+    applyAuthenticatedAccount(result.account); rankJobsForUser(); currentPresentationJobIndex = 0; renderPresentationJobCard(); closeProfileSettings(); showToast('Đã cập nhật hồ sơ.', 'success');
+  } catch (error) { showToast(error.message, 'error'); }
+}
+
+function nextOnboardingStep() {
+  saveCurrentOnboardingFields();
+  if (onboardingStep === 0 && !/^\S+@\S+\.\S+$/.test(onboardingDraft.email)) { showToast('Vui lòng nhập email hợp lệ.', 'error'); return; }
+  if (onboardingStep < onboardingSteps.length - 1) { onboardingStep++; renderOnboardingStep(); return; }
+  if (!document.getElementById('onboarding-personalization')?.checked) { showToast('Vui lòng đồng ý lưu lựa chọn để cá nhân hóa job.', 'error'); return; }
+  onboardingDraft.email = onboardingDraft.email || localStorage.getItem('recruitment_account_email') || '';
+  onboardingDraft.completed = true;
+  setCookie(PERSONALIZATION_COOKIE, 'accepted', 180);
+  authRequest('/api/auth/profile', { method: 'PUT', body: JSON.stringify(onboardingDraft) })
+    .then((result) => { applyAuthenticatedAccount(result.account); rankJobsForUser(); closeOnboarding(); startJourney(true); })
+    .catch((error) => showToast(error.message, 'error'));
+}
+
+async function openProfileSettings() {
+  const modal = document.getElementById('profile-modal');
+  if (!modal) return;
+  modal.classList.add('is-open');
+  modal.setAttribute('aria-hidden', 'false');
+  modal.style.setProperty('display', 'grid', 'important');
+  try {
+    const result = await authRequest('/api/auth/me', { method: 'GET', headers: {} });
+    const profile = applyAuthenticatedAccount(result.account);
+    const form = document.getElementById('profile-form');
+    if (!form) return;
+    form.innerHTML = `<div class="onboarding-field"><label>Email</label><input id="profile-email" type="email" value="${profile.email || ''}"></div><div class="onboarding-field"><label>Nhóm nghề</label><select id="profile-category"><option value="technology">Công nghệ</option><option value="design">Thiết kế</option><option value="business">Kinh doanh</option><option value="marketing">Marketing</option></select></div><div class="onboarding-field"><label>Địa điểm</label><select id="profile-location"><option value="">Không giới hạn</option><option value="Hà Nội">Hà Nội</option><option value="TP.HCM">TP.HCM</option><option value="Remote">Remote</option></select></div><div class="onboarding-field"><label>Hình thức làm việc</label><select id="profile-work-type"><option value="">Không giới hạn</option><option value="hybrid">Hybrid</option><option value="onsite">Tại văn phòng</option><option value="remote">Remote</option></select></div><div class="onboarding-field"><label>Kỹ năng (phân cách bằng dấu phẩy)</label><input id="profile-interests" value="${(profile.interests || []).join(', ')}"></div>`;
+    ['category', 'location', 'workType'].forEach((key) => {
+      const field = document.getElementById(`profile-${key}`);
+      if (field) field.value = profile[key] || '';
+    });
+  } catch (error) {
+    closeProfileSettings();
+    showToast('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'error');
+    openAuthModal('login');
+  }
+}
+
+// Luôn làm sạch form cũ trước khi tải hồ sơ mới, tránh hiển thị giá trị mặc định trong lúc chờ API.
+async function openProfileSettings() {
+  const modal = document.getElementById('profile-modal');
+  const form = document.getElementById('profile-form');
+  if (!modal || !form) return;
+  modal.classList.add('is-open');
+  modal.setAttribute('aria-hidden', 'false');
+  modal.style.setProperty('display', 'grid', 'important');
+  form.innerHTML = '<p class="onboarding-copy">Đang tải hồ sơ…</p>';
+  try {
+    const result = await authRequest('/api/auth/me', { method: 'GET', headers: {} });
+    const profile = applyAuthenticatedAccount(result.account);
+    form.innerHTML = `<div class="onboarding-field"><label>Email</label><input id="profile-email" type="email" value="${profile.email || ''}"></div><div class="onboarding-field"><label>Nhóm nghề</label><select id="profile-category"><option value="technology">Công nghệ</option><option value="design">Thiết kế</option><option value="business">Kinh doanh</option><option value="marketing">Marketing</option></select></div><div class="onboarding-field"><label>Địa điểm</label><select id="profile-location"><option value="">Không giới hạn</option><option value="Hà Nội">Hà Nội</option><option value="TP.HCM">TP.HCM</option><option value="Remote">Remote</option></select></div><div class="onboarding-field"><label>Hình thức làm việc</label><select id="profile-work-type"><option value="">Không giới hạn</option><option value="hybrid">Hybrid</option><option value="onsite">Tại văn phòng</option><option value="remote">Remote</option></select></div><div class="onboarding-field"><label>Kỹ năng (phân cách bằng dấu phẩy)</label><input id="profile-interests" value="${(profile.interests || []).join(', ')}"></div>`;
+    document.getElementById('profile-category').value = profile.category || '';
+    document.getElementById('profile-location').value = profile.location || '';
+    document.getElementById('profile-work-type').value = profile.workType || '';
+  } catch (error) {
+    closeProfileSettings();
+    showToast('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'error');
+    openAuthModal('login');
+  }
+}
+
+const GOOGLE_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwx6G-UtSclMuqdmwOJ7RJXF7qmj_OKtdacosrBXOj-qczS_VrYZeW_D1zy3sMG3Jc2/exec";
 
 const workspaceFocusData = [
   {
@@ -252,7 +397,7 @@ function renderPresentationDeck(manifest) {
     const isGoogleSlides = renderMode === 'google-slides';
     const isHtmlSlide = renderMode === 'html' || /\.html(?:$|\?)/i.test(src);
     const slideContent = isVideo
-      ? `<video class="journey-video journey-intro-video" src="${src}" autoplay playsinline preload="auto"></video>`
+      ? `<video class="journey-video journey-intro-video" src="${src}" autoplay playsinline preload="metadata"></video>`
       : isGoogleSlides
       ? `<iframe class="deck-slide-frame-embed google-slides-embed" src="${src}" title="Google Slides" allowfullscreen></iframe>`
       : isHtmlSlide
@@ -284,7 +429,7 @@ function renderPresentationDeck(manifest) {
     ? `
       <section class="presentation-slide presentation-job-video-slide">
         <div class="presentation-slide-frame">
-          <video class="journey-video job-description-video" src="${manifest.slides[0]}" data-default-src="${manifest.slides[0]}" playsinline preload="auto"></video>
+          <video class="journey-video job-description-video" src="${manifest.slides[0]}" data-default-src="${manifest.slides[0]}" playsinline preload="metadata"></video>
         </div>
       </section>
     `
@@ -304,6 +449,7 @@ function renderPresentationDeck(manifest) {
   if (renderMode === 'video') {
     const video = track.querySelector('.journey-intro-video');
     if (video) {
+      video.addEventListener('error', () => showToast('Không thể phát video. Hãy kiểm tra định dạng MP4 H.264/AAC.', 'error'));
       video.addEventListener('ended', () => {
         if (currentPresentationSlide === 0) nextPresentationSlide();
       });
@@ -349,8 +495,9 @@ function playJobDescriptionVideo(job) {
     openModal(job.title);
     return;
   }
+  video.onerror = () => showToast('Video mô tả công việc không tải được.', 'error');
 
-  const targetVideoUrl = job.videoUrl || video.dataset.defaultSrc;
+  const targetVideoUrl = job.videoUrl || presentationManifest?.videos?.[`job-${job.id}`]?.videoUrl || presentationManifest?.videos?.['job-default']?.videoUrl || video.dataset.defaultSrc;
   if (targetVideoUrl && video.getAttribute('src') !== targetVideoUrl) {
     video.setAttribute('src', targetVideoUrl);
     video.load();
@@ -415,10 +562,13 @@ function hidePresentationControls() {
 
 function showPresentationControlsTemporarily() {
   if (!document.body.classList.contains('video-journey-active')) return;
-
-  document.body.classList.add('presentation-controls-visible');
-  window.clearTimeout(presentationControlsTimer);
-  presentationControlsTimer = window.setTimeout(hidePresentationControls, 1800);
+  if (controlsMoveFrame) return;
+  controlsMoveFrame = window.requestAnimationFrame(() => {
+    controlsMoveFrame = 0;
+    document.body.classList.add('presentation-controls-visible');
+    window.clearTimeout(presentationControlsTimer);
+    presentationControlsTimer = window.setTimeout(hidePresentationControls, 1800);
+  });
 }
 
 async function loadPresentationManifest() {
@@ -824,6 +974,7 @@ function initPresentationEvents() {
 
 updateSlidePositions();
 syncAccountUI();
+restoreAuthSession();
 document.getElementById('profile-open-button')?.addEventListener('click', openProfileSettings);
 initPresentationEvents();
 syncPresentationSourceLabel();
