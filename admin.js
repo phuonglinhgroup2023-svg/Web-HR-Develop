@@ -29,7 +29,16 @@ function renderVideoList(videos) {
   const list = document.getElementById('admin-video-list');
   if (!list) return;
   const entries = Object.values(videos);
-  list.innerHTML = entries.length ? `<h3>Video đã gắn vào từng mục</h3>${entries.map((video) => `<div class="admin-video-item"><span><strong>${escapeHtml(videoSlotLabels[video.slot] || video.slot)}</strong><small>${escapeHtml(video.sourceName || '')}</small></span><a href="${video.videoUrl}" target="_blank" rel="noreferrer">Xem video</a></div>`).join('')}` : '<p class="admin-note">Chưa có video nào được gắn vào mục.</p>';
+  list.innerHTML = entries.length ? `<h3>Video đã gắn vào từng mục</h3>${entries.map((video) => `<div class="admin-video-item"><span><strong>${escapeHtml(videoSlotLabels[video.slot] || video.slot)}</strong><small>${escapeHtml(video.sourceName || '')}</small></span><span class="admin-video-actions"><a href="${video.videoUrl}" target="_blank" rel="noreferrer">Xem video</a><button type="button" class="admin-video-delete" data-delete-slot="${escapeHtml(video.slot)}" aria-label="Xóa video ${escapeHtml(video.slot)}">×</button></span></div>`).join('')}` : '<p class="admin-note">Chưa có video nào được gắn vào mục.</p>';
+  list.querySelectorAll('[data-delete-slot]').forEach((button) => button.addEventListener('click', () => deleteVideo(button.dataset.deleteSlot)));
+}
+
+async function deleteVideo(slot) {
+  const label = videoSlotLabels[slot] || slot;
+  if (!confirm(`Xóa video của mục “${label}”?`)) return;
+  const response = await fetch(`/api/clear-presentation?slot=${encodeURIComponent(slot)}`, { method: 'POST', credentials: 'same-origin' });
+  if (!response.ok) { alert('Không thể xóa video của mục này.'); return; }
+  await refreshAdminState();
 }
 
 function showAdminAuth() { const auth = document.getElementById('admin-auth'); const app = document.getElementById('admin-app'); auth.hidden = false; auth.style.display = 'grid'; app.hidden = true; app.style.display = 'none'; }

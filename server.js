@@ -166,6 +166,13 @@ function readManifest() {
   }
 }
 
+function detectVideoCodec(buffer, fileName) {
+  if (!/\.mp4$/i.test(fileName)) return null;
+  const header = buffer.slice(0, Math.min(buffer.length, 2 * 1024 * 1024)).toString('latin1');
+  if (header.includes('hvc1') || header.includes('hev1')) return 'HEVC/H.265';
+  return null;
+}
+
 function writeManifest(manifest) {
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), 'utf8');
 }
@@ -644,7 +651,8 @@ function serveVideo(req, res, filePath) {
   const headers = {
     'Content-Type': mimeFor(filePath),
     'Accept-Ranges': 'bytes',
-    'Cache-Control': 'no-store',
+    'Cache-Control': 'public, max-age=31536000, immutable',
+    'Content-Encoding': 'identity',
   };
 
   if (!range) {
@@ -911,6 +919,8 @@ const server = http.createServer((req, res) => {
         if (!/\.(mp4|webm|ogg)$/i.test(safeName)) {
           throw new Error('Chỉ hỗ trợ video MP4, WebM hoặc OGG.');
         }
+        const unsupportedCodec = detectVideoCodec(parsed.data, safeName);
+        if (unsupportedCodec) throw new Error('Video đang dùng HEVC/H.265 (hvc1), Chrome có thể chỉ hiện màn hình đen. Hãy xuất lại video dạng MP4 H.264/AAC rồi upload lại.');
         const videoName = `${Date.now()}-${safeName}`;
         fs.writeFileSync(path.join(videoDir, videoName), parsed.data);
 

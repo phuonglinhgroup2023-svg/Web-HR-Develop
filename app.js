@@ -449,7 +449,7 @@ function renderPresentationDeck(manifest) {
   if (renderMode === 'video') {
     const video = track.querySelector('.journey-intro-video');
     if (video) {
-      video.addEventListener('error', () => showToast('Không thể phát video. Hãy kiểm tra định dạng MP4 H.264/AAC.', 'error'));
+      video.addEventListener('error', () => showToast('Không thể phát video. Hãy upload MP4 H.264/AAC (HEVC/H.265 có thể hiện màn hình đen trên Chrome).', 'error'));
       video.addEventListener('ended', () => {
         if (currentPresentationSlide === 0) nextPresentationSlide();
       });
@@ -497,7 +497,15 @@ function playJobDescriptionVideo(job) {
   }
   video.onerror = () => showToast('Video mô tả công việc không tải được.', 'error');
 
-  const targetVideoUrl = job.videoUrl || presentationManifest?.videos?.[`job-${job.id}`]?.videoUrl || presentationManifest?.videos?.['job-default']?.videoUrl || video.dataset.defaultSrc;
+  const targetVideoUrl = job.videoUrl || presentationManifest?.videos?.[job.id]?.videoUrl || presentationManifest?.videos?.['job-default']?.videoUrl;
+  if (!targetVideoUrl) {
+    video.pause();
+    video.removeAttribute('src');
+    video.load();
+    showToast(`Job “${job.title}” chưa được gắn video mô tả.`, 'error');
+    openModal(job.title);
+    return;
+  }
   if (targetVideoUrl && video.getAttribute('src') !== targetVideoUrl) {
     video.setAttribute('src', targetVideoUrl);
     video.load();
@@ -602,6 +610,9 @@ function updatePresentationView() {
   syncPresentationSourceLabel();
   const activeSlideHasVideo = Boolean(track?.children[currentPresentationSlide]?.querySelector('video'));
   const activeSlideIsJobs = Boolean(track?.children[currentPresentationSlide]?.classList.contains('presentation-jobs-slide'));
+  if (activeSlideIsJobs && document.fullscreenElement) {
+    document.exitFullscreen().catch(() => {});
+  }
   document.body.classList.toggle('video-journey-active', activeSlideHasVideo);
   document.body.classList.toggle('jobs-journey-active', activeSlideIsJobs);
   if (!activeSlideHasVideo) {
@@ -960,6 +971,16 @@ function initPresentationEvents() {
     stage.addEventListener('click', (event) => {
       if (event.target.closest('button')) return;
     });
+
+    let wheelLock = false;
+    stage.addEventListener('wheel', (event) => {
+      if (!document.body.classList.contains('jobs-journey-active') || Math.abs(event.deltaY) < 24 || wheelLock) return;
+      event.preventDefault();
+      wheelLock = true;
+      if (event.deltaY > 0) nextPresentationJob();
+      else prevPresentationJob();
+      window.setTimeout(() => { wheelLock = false; }, 520);
+    }, { passive: false });
   }
 
   document.addEventListener('keydown', (event) => {
@@ -971,6 +992,30 @@ function initPresentationEvents() {
     if (event.key === 'Escape') closePresentation();
   });
 }
+
+function returnToJobList() {
+  const overlay = document.getElementById('presentation-overlay');
+  const track = document.getElementById('presentation-track');
+  const jobsSlide = track?.querySelector('.presentation-jobs-slide');
+  if (!overlay || !track || !jobsSlide) return;
+  currentPresentationSlide = Array.from(track.children).indexOf(jobsSlide);
+  renderPresentationJobCard();
+  overlay.classList.add('open');
+  overlay.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('presentation-active', 'jobs-journey-active');
+  document.body.classList.remove('video-journey-active', 'presentation-controls-visible');
+  updatePresentationView();
+}
+
+function closeModal() {
+  const modal = document.getElementById('apply-modal');
+  if (modal) { modal.style.display = 'none'; modal.classList.add('hidden'); }
+  returnToJobList();
+}
+
+document.getElementById('apply-modal')?.addEventListener('click', (event) => {
+  if (event.target === event.currentTarget) closeModal();
+});
 
 updateSlidePositions();
 syncAccountUI();

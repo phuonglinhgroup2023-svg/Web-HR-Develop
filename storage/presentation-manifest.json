@@ -1,0 +1,25 @@
+{
+  "renderMode": "video",
+  "videos": {
+    "intro": {
+      "slot": "intro",
+      "sourceName": "YTSave_YouTube_Starbucks-Presentation-Template-by-pptFr_Media_5mmiCYFSwv8_001_1080p.mp4",
+      "uploadedAt": "2026-08-31T05:19:48.882Z",
+      "videoUrl": "/storage/video/1788153588871-YTSave_YouTube_Starbucks-Presentation-Template-by-pptFr_Media_5mmiCYFSwv8_001_1080p.mp4"
+    },
+    "job-02": {
+      "slot": "job-02",
+      "sourceName": "YTSave_YouTube_STARBUCKS-Mau-PowerPoint-Thuyet-Trinh-Ma_Media_eZllMfAi4r0_001_1080p.mp4",
+      "uploadedAt": "2026-08-31T05:19:58.548Z",
+      "videoUrl": "/storage/video/1788153598537-YTSave_YouTube_STARBUCKS-Mau-PowerPoint-Thuyet-Trinh-Ma_Media_eZllMfAi4r0_001_1080p.mp4"
+    }
+  },
+  "ready": true,
+  "sourceName": "YTSave_YouTube_Starbucks-Presentation-Template-by-pptFr_Media_5mmiCYFSwv8_001_1080p.mp4",
+  "uploadedAt": "2026-08-31T05:19:58.548Z",
+  "slideCount": 1,
+  "videoUrl": "/storage/video/1788153588871-YTSave_YouTube_Starbucks-Presentation-Template-by-pptFr_Media_5mmiCYFSwv8_001_1080p.mp4",
+  "slides": [
+    "/storage/video/1788153588871-YTSave_YouTube_Starbucks-Presentation-Template-by-pptFr_Media_5mmiCYFSwv8_001_1080p.mp4"
+  ]
+}

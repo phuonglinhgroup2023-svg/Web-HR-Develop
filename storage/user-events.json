@@ -1,0 +1,149 @@
+[
+  {
+    "email": "e@gmail.com",
+    "type": "skip",
+    "jobId": "job-01",
+    "jobTitle": "Chuyên Viên Lập Trình Web",
+    "timestamp": "2026-08-31T04:43:14.720Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "skip",
+    "jobId": "job-02",
+    "jobTitle": "Nhân Viên Thiết Kế Nội Thất 3D",
+    "timestamp": "2026-08-31T04:43:15.635Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "apply",
+    "jobId": "job-01",
+    "jobTitle": "Chuyên Viên Lập Trình Web",
+    "timestamp": "2026-08-31T04:43:16.610Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "skip",
+    "jobId": "job-01",
+    "jobTitle": "Chuyên Viên Lập Trình Web",
+    "timestamp": "2026-08-31T05:20:48.893Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "follow",
+    "jobId": "job-02",
+    "jobTitle": "Nhân Viên Thiết Kế Nội Thất 3D",
+    "timestamp": "2026-08-31T05:20:51.661Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "apply",
+    "jobId": "job-01",
+    "jobTitle": "Chuyên Viên Lập Trình Web",
+    "timestamp": "2026-08-31T05:20:52.800Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "apply",
+    "jobId": "job-01",
+    "jobTitle": "Chuyên Viên Lập Trình Web",
+    "timestamp": "2026-08-31T05:21:16.139Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "apply",
+    "jobId": "job-01",
+    "jobTitle": "Chuyên Viên Lập Trình Web",
+    "timestamp": "2026-08-31T05:25:30.252Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "skip",
+    "jobId": "job-01",
+    "jobTitle": "Chuyên Viên Lập Trình Web",
+    "timestamp": "2026-08-31T05:25:37.958Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "apply",
+    "jobId": "job-02",
+    "jobTitle": "Nhân Viên Thiết Kế Nội Thất 3D",
+    "timestamp": "2026-08-31T05:25:38.836Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "apply",
+    "jobId": "job-01",
+    "jobTitle": "Chuyên Viên Lập Trình Web",
+    "timestamp": "2026-08-31T05:27:41.962Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "skip",
+    "jobId": "job-01",
+    "jobTitle": "Chuyên Viên Lập Trình Web",
+    "timestamp": "2026-08-31T05:27:46.533Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "apply",
+    "jobId": "job-02",
+    "jobTitle": "Nhân Viên Thiết Kế Nội Thất 3D",
+    "timestamp": "2026-08-31T05:27:47.485Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "apply",
+    "jobId": "job-02",
+    "jobTitle": "Nhân Viên Thiết Kế Nội Thất 3D",
+    "timestamp": "2026-08-31T05:27:59.366Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "apply",
+    "jobId": "job-01",
+    "jobTitle": "Chuyên Viên Lập Trình Web",
+    "timestamp": "2026-08-31T05:42:25.980Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "skip",
+    "jobId": "job-01",
+    "jobTitle": "Chuyên Viên Lập Trình Web",
+    "timestamp": "2026-08-31T05:42:32.167Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "apply",
+    "jobId": "job-02",
+    "jobTitle": "Nhân Viên Thiết Kế Nội Thất 3D",
+    "timestamp": "2026-08-31T05:42:32.877Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "skip",
+    "jobId": "job-02",
+    "jobTitle": "Nhân Viên Thiết Kế Nội Thất 3D",
+    "timestamp": "2026-08-31T05:43:16.028Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "skip",
+    "jobId": "job-02",
+    "jobTitle": "Nhân Viên Thiết Kế Nội Thất 3D",
+    "timestamp": "2026-08-31T05:44:26.489Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "skip",
+    "jobId": "job-01",
+    "jobTitle": "Chuyên Viên Lập Trình Web",
+    "timestamp": "2026-08-31T05:49:04.463Z"
+  },
+  {
+    "email": "e@gmail.com",
+    "type": "apply",
+    "jobId": "job-02",
+    "jobTitle": "Nhân Viên Thiết Kế Nội Thất 3D",
+    "timestamp": "2026-08-31T05:49:05.148Z"
+  }
+]

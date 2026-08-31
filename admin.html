@@ -28,6 +28,7 @@
     </header>
     <section class="admin-stats" id="admin-stats"></section>
     <section class="admin-panel">
+      <p class="admin-note video-format-warning">Khuyến nghị upload MP4 H.264/AAC. Video HEVC/H.265 (hvc1/hev1) có thể chỉ hiện màn hình đen trên Chrome.</p>
       <div class="admin-panel-heading"><div><h2>Nội dung hành trình</h2><p class="admin-note">Đăng video để hiển thị trên trang public.</p></div><div class="admin-preview-item" id="admin-preview-item">Chưa có video.</div></div>
       <div class="upload-box"><div class="upload-row"><label for="video-slot">Chọn loại video</label><select id="video-slot"><option value="intro">Video giới thiệu không gian công ty (chỉ 1 video)</option><option value="job-default">Video mô tả job mặc định</option><option value="job-01">Job 01 - Chuyên viên lập trình Web</option><option value="job-02">Job 02 - Thiết kế nội thất 3D</option></select><label for="pptx-file">Chọn video</label><input type="file" id="pptx-file" accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg"></div><div class="admin-actions"><button type="button" class="admin-btn" id="upload-btn">Upload video cho mục đã chọn</button><button type="button" class="admin-btn secondary" id="clear-btn">Xóa video mục đã chọn</button></div><div class="admin-video-list" id="admin-video-list"></div></div>
     </section>
@@ -37,6 +38,6 @@
     </section>
     <section class="admin-panel"><h2>Hoạt động gần đây</h2><div class="admin-table-wrap"><table><thead><tr><th>Thời gian</th><th>Email</th><th>Hành động</th><th>Job</th></tr></thead><tbody id="events-body"><tr><td colspan="4">Đang tải…</td></tr></tbody></table></div></section>
   </main>
-  <script src="admin.js?v=17"></script>
+  <script src="admin.js?v=19"></script>
 </body>
 </html>
