@@ -13,6 +13,22 @@ let rankedJobs = [];
 let authMode = 'login';
 let controlsMoveFrame = 0;
 function showToast(message, type = 'info') { const region = document.getElementById('toast-region'); if (!region) return; const toast = document.createElement('div'); toast.className = `toast${type === 'error' ? ' is-error' : type === 'success' ? ' is-success' : ''}`; toast.textContent = message; region.appendChild(toast); window.setTimeout(() => toast.remove(), 3600); }
+function showHomePage() { document.getElementById('home-page')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return false; }
+function focusHomeTopic(topic) { showToast(`${topic}: noi dung dang duoc hoan thien.`, 'info'); return false; }
+function openHomeSearch() { showToast('Tim kiem job se duoc bo sung o buoc tiep theo.', 'info'); }
+function openHomeCart() { showToast('Gio hang hien chua co san pham.', 'info'); }
+
+let profileArrowTimer = null;
+function revealProfileArrow() {
+  document.body.classList.add('profile-arrow-revealed');
+  window.clearTimeout(profileArrowTimer);
+  profileArrowTimer = window.setTimeout(() => document.body.classList.remove('profile-arrow-revealed'), 2200);
+}
+
+const homeHeader = document.querySelector('.site-header');
+homeHeader?.addEventListener('mouseenter', revealProfileArrow);
+homeHeader?.addEventListener('pointerdown', revealProfileArrow);
+window.addEventListener('wheel', (event) => { if (event.deltaY > 0) revealProfileArrow(); }, { passive: true });
 
 const ONBOARDING_KEY = 'recruitment_user_profile_v1';
 const ACCOUNTS_KEY = 'recruitment_accounts_v1';

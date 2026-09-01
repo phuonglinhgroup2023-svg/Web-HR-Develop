@@ -145,5 +145,40 @@
     "jobId": "job-02",
     "jobTitle": "Nhân Viên Thiết Kế Nội Thất 3D",
     "timestamp": "2026-08-31T05:49:05.148Z"
+  },
+  {
+    "email": "d@gmail.com",
+    "type": "skip",
+    "jobId": "job-02",
+    "jobTitle": "Nhân Viên Thiết Kế Nội Thất 3D",
+    "timestamp": "2026-08-31T16:08:55.361Z"
+  },
+  {
+    "email": "d@gmail.com",
+    "type": "apply",
+    "jobId": "job-01",
+    "jobTitle": "Chuyên Viên Lập Trình Web",
+    "timestamp": "2026-08-31T16:09:00.579Z"
+  },
+  {
+    "email": "d@gmail.com",
+    "type": "apply",
+    "jobId": "job-02",
+    "jobTitle": "Nhân Viên Thiết Kế Nội Thất 3D",
+    "timestamp": "2026-08-31T16:09:19.648Z"
+  },
+  {
+    "email": "d@gmail.com",
+    "type": "follow",
+    "jobId": "job-02",
+    "jobTitle": "Nhân Viên Thiết Kế Nội Thất 3D",
+    "timestamp": "2026-08-31T16:10:26.284Z"
+  },
+  {
+    "email": "d@gmail.com",
+    "type": "follow",
+    "jobId": "job-01",
+    "jobTitle": "Chuyên Viên Lập Trình Web",
+    "timestamp": "2026-08-31T16:10:27.917Z"
   }
 ]
