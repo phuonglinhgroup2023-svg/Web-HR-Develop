@@ -4,5 +4,11 @@
     "passwordSalt": "ef39552f30e339d942b8896a6e607433",
     "passwordHash": "f186e6fcb252834b0220dbd76faa9985a550fbc8b1b57a8abc4c61e842eb2ef9c47c9fd6b1d6146f64d637eb856a6287308156c02441f47a81195c5460947f17",
     "createdAt": "2026-08-30T17:25:28.942Z"
+  },
+  "d@gmail.com": {
+    "email": "d@gmail.com",
+    "passwordSalt": "5c06f64533ca4b57e2933329f36fd089",
+    "passwordHash": "a0cede41c1f647e8c448f68f9f919a7f799f0ee573ba707d7e79e9154ab2ec4bff72525e938707764fb1615cd5d5a3336f585b83be2838cebd6757e4cb7b67c8",
+    "createdAt": "2026-09-02T08:38:09.705Z"
   }
 }

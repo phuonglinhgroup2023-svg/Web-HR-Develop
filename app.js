@@ -13,10 +13,44 @@ let rankedJobs = [];
 let authMode = 'login';
 let controlsMoveFrame = 0;
 function showToast(message, type = 'info') { const region = document.getElementById('toast-region'); if (!region) return; const toast = document.createElement('div'); toast.className = `toast${type === 'error' ? ' is-error' : type === 'success' ? ' is-success' : ''}`; toast.textContent = message; region.appendChild(toast); window.setTimeout(() => toast.remove(), 3600); }
-function showHomePage() { document.getElementById('home-page')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return false; }
+function showHomePage() { document.body.classList.remove('second-page-active'); currentSlide = 0; updateSlidePositions(); document.getElementById('home-page')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return false; }
+function showSecondPage() {
+  document.body.classList.add('second-page-active');
+  document.body.classList.remove('presentation-active', 'jobs-journey-active');
+  currentSlide = 0;
+  updateSlidePositions();
+}
 function focusHomeTopic(topic) { showToast(`${topic}: noi dung dang duoc hoan thien.`, 'info'); return false; }
 function openHomeSearch() { showToast('Tim kiem job se duoc bo sung o buoc tiep theo.', 'info'); }
 function openHomeCart() { showToast('Gio hang hien chua co san pham.', 'info'); }
+
+function syncHomeIntroVideo() {
+  const card = document.getElementById('home-intro-video-card');
+  const video = document.getElementById('home-intro-video');
+  const status = document.getElementById('home-intro-video-status');
+  if (!card || !video) return;
+  const source = presentationManifest?.videos?.intro?.videoUrl || '';
+  video.onerror = () => {
+    video.hidden = true;
+    card.classList.add('is-unavailable');
+    if (status) status.textContent = 'Video chưa thể phát trên trình duyệt này — bấm để xem trang giới thiệu';
+  };
+  if (!source) {
+    video.removeAttribute('src');
+    video.load();
+    video.hidden = true;
+    card.classList.add('is-empty');
+    if (status) status.textContent = 'Admin chưa upload video intro — bấm để xem trang giới thiệu';
+    return;
+  }
+  card.classList.remove('is-empty', 'is-unavailable');
+  video.hidden = false;
+  if (video.getAttribute('src') !== source) {
+    video.setAttribute('src', source);
+    video.load();
+  }
+  video.play().catch(() => {});
+}
 
 let profileArrowTimer = null;
 function revealProfileArrow() {
@@ -600,16 +634,19 @@ async function loadPresentationManifest() {
     const response = await fetch('/api/presentation', { cache: 'no-store' });
     if (!response.ok) {
       presentationManifest = null;
+      syncHomeIntroVideo();
       syncPresentationSourceLabel();
       return null;
     }
 
     presentationManifest = await response.json();
+    syncHomeIntroVideo();
     syncPresentationSourceLabel();
     return presentationManifest;
   } catch (error) {
     console.error(error);
     presentationManifest = null;
+    syncHomeIntroVideo();
     syncPresentationSourceLabel();
     return null;
   }

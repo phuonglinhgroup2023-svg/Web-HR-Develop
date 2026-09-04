@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tuyển Dụng Công Ty A - Hành Trình Trải Nghiệm</title>
-  <link rel="stylesheet" href="style.css?v=36">
+  <link rel="stylesheet" href="style.css?v=38">
 </head>
 <body>
   <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
@@ -34,9 +34,17 @@
       <p class="home-kicker">CO HOI DONG HANH</p>
       <h1 id="home-title">Kham pha noi<br><span>tai nang cat canh</span></h1>
       <p class="home-copy">Mot hanh trinh nghe nghiep duoc thiet ke quanh ban — kham pha van hoa, con nguoi va nhung vi tri dang cho ban tao dau an.</p>
+      <div class="home-video-card" id="home-intro-video-card" role="button" tabindex="0" onclick="showSecondPage()" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); showSecondPage(); }" aria-label="Xem video giới thiệu công ty và sang trang giới thiệu">
+        <video id="home-intro-video" class="home-intro-video" muted loop playsinline preload="metadata"></video>
+        <div class="home-video-overlay">
+          <span class="home-play-icon" aria-hidden="true">▶</span>
+          <span class="home-video-label" id="home-intro-video-label">Video giới thiệu công ty</span>
+          <small id="home-intro-video-status">Khám phá câu chuyện phía sau Công ty A</small>
+        </div>
+      </div>
       <div class="home-actions">
-        <button class="home-cta" type="button" onclick="startJourney()">Bat dau hanh trinh <span aria-hidden="true">→</span></button>
-        <a class="home-secondary" href="#jobs" onclick="return focusHomeTopic('Vi tri')">Kham pha vi tri</a>
+        <button class="home-cta" type="button" onclick="showSecondPage()">Bat dau hanh trinh <span aria-hidden="true">→</span></button>
+        <a class="home-secondary" href="#jobs" onclick="showSecondPage(); return false;">Kham pha vi tri</a>
       </div>
       <div class="home-highlights" aria-label="Highlights"><span>Van hoa co mo</span><span>Doi ngu truyen cam hung</span><span>Co hoi phat trien</span></div>
     </section>
@@ -311,6 +319,6 @@
 
   <script>window.showProfileModal = function () { const modal = document.getElementById('profile-modal'); if (!modal) return; modal.classList.add('is-open'); modal.setAttribute('aria-hidden', 'false'); if (typeof window.openProfileSettings === 'function') window.openProfileSettings(); };</script>
   <script src="jobs.js?v=13"></script>
-  <script src="app.js?v=56"></script>
+  <script src="app.js?v=57"></script>
 </body>
 </html>
