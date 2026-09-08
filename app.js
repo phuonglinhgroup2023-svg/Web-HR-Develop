@@ -28,15 +28,67 @@ function initHomeScrollReveal() {
   const reveal = document.querySelector('[data-home-reveal]');
   const homePage = document.getElementById('home-page');
   if (!reveal || !homePage) return;
+  const videoCard = document.getElementById('home-intro-video-card');
+  const getVideoEnd = () => videoCard ? videoCard.offsetTop + videoCard.offsetHeight : 0;
+  const isAtVideoEnd = () => homePage.scrollTop + homePage.clientHeight >= getVideoEnd() - 12;
+  const resetReveal = () => {
+    reveal.classList.remove('is-partial', 'is-visible', 'is-revealing');
+    reveal.style.removeProperty('--home-action-opacity');
+    reveal.style.removeProperty('--home-action-offset');
+  };
+  const gesturesPerPhase = 4;
+  const totalRevealGestures = gesturesPerPhase * 2;
+  let atVideoEnd = false;
+  let revealGestures = 0;
+  let revealUnlocked = false;
+  let gestureLocked = false;
+  let gestureUnlockTimer = null;
+  let lastScrollTop = homePage.scrollTop;
   homePage.addEventListener('wheel', (event) => {
-    const isAtVideoStart = homePage.scrollTop <= 8;
-    if (event.deltaY > 0 && isAtVideoStart && !reveal.classList.contains('is-visible')) {
+    if (event.deltaY < 0) {
+      atVideoEnd = false;
+      revealGestures = 0;
+      revealUnlocked = false;
+      gestureLocked = false;
+      window.clearTimeout(gestureUnlockTimer);
+      resetReveal();
+      return;
+    }
+    if (event.deltaY > 0 && atVideoEnd && !revealUnlocked) {
       event.preventDefault();
-      reveal.classList.add('is-visible');
+      if (gestureLocked) return;
+      gestureLocked = true;
+      revealGestures += 1;
+      const progress = Math.min(1, revealGestures / totalRevealGestures);
+      reveal.classList.add('is-revealing');
+      reveal.classList.toggle('is-partial', progress < 1);
+      reveal.style.setProperty('--home-action-opacity', progress.toFixed(3));
+      reveal.style.setProperty('--home-action-offset', `${Math.round(48 * (1 - progress))}px`);
+      if (revealGestures >= totalRevealGestures) {
+        reveal.classList.remove('is-partial');
+        reveal.classList.add('is-visible');
+        revealUnlocked = true;
+        homePage.scrollBy({ top: Math.max(80, Math.abs(event.deltaY)), behavior: 'auto' });
+      }
+      window.clearTimeout(gestureUnlockTimer);
+      gestureUnlockTimer = window.setTimeout(() => { gestureLocked = false; }, 280);
     }
   }, { passive: false });
   homePage.addEventListener('scroll', () => {
-    reveal.classList.toggle('is-visible', homePage.scrollTop > 8);
+    const currentScrollTop = homePage.scrollTop;
+    const scrollingUp = currentScrollTop < lastScrollTop - 2;
+    if (scrollingUp) {
+      atVideoEnd = false;
+      revealGestures = 0;
+      revealUnlocked = false;
+      resetReveal();
+    } else if (isAtVideoEnd() && !atVideoEnd) {
+      atVideoEnd = true;
+      revealGestures = 0;
+      revealUnlocked = false;
+      resetReveal();
+    }
+    lastScrollTop = currentScrollTop;
   }, { passive: true });
 }
 
@@ -45,29 +97,36 @@ initHomeScrollReveal();
 function syncHomeIntroVideo() {
   const card = document.getElementById('home-intro-video-card');
   const video = document.getElementById('home-intro-video');
+  const backdrop = document.getElementById('home-intro-video-backdrop');
   const status = document.getElementById('home-intro-video-status');
   if (!card || !video) return;
   const source = presentationManifest?.videos?.intro?.videoUrl || '';
   video.onerror = () => {
     video.hidden = true;
+    if (backdrop) backdrop.hidden = true;
     card.classList.add('is-unavailable');
     if (status) status.textContent = 'Video chưa thể phát trên trình duyệt này — bấm để xem trang giới thiệu';
   };
   if (!source) {
     video.removeAttribute('src');
     video.load();
+    if (backdrop) { backdrop.removeAttribute('src'); backdrop.load(); }
     video.hidden = true;
+    if (backdrop) backdrop.hidden = true;
     card.classList.add('is-empty');
     if (status) status.textContent = 'Admin chưa upload video intro — bấm để xem trang giới thiệu';
     return;
   }
   card.classList.remove('is-empty', 'is-unavailable');
   video.hidden = false;
+  if (backdrop) backdrop.hidden = false;
   if (video.getAttribute('src') !== source) {
     video.setAttribute('src', source);
     video.load();
+    if (backdrop) { backdrop.setAttribute('src', source); backdrop.load(); }
   }
   video.play().catch(() => {});
+  backdrop?.play().catch(() => {});
 }
 
 let profileArrowTimer = null;

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tuyển Dụng Công Ty A - Hành Trình Trải Nghiệm</title>
-  <link rel="stylesheet" href="style.css?v=39">
+  <link rel="stylesheet" href="style.css?v=69">
 </head>
 <body>
   <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
@@ -39,14 +39,20 @@
       <div class="home-scroll-reveal" data-home-reveal>
       <p class="home-copy">Mot hanh trinh nghe nghiep duoc thiet ke quanh ban — kham pha van hoa, con nguoi va nhung vi tri dang cho ban tao dau an.</p>
       <div class="home-video-card" id="home-intro-video-card" role="button" tabindex="0" onclick="showSecondPage()" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); showSecondPage(); }" aria-label="Xem video giới thiệu công ty và sang trang giới thiệu">
+        <video id="home-intro-video-backdrop" class="home-intro-video-backdrop" muted loop playsinline preload="metadata" aria-hidden="true"></video>
         <video id="home-intro-video" class="home-intro-video" muted loop playsinline preload="metadata"></video>
         <div class="home-video-overlay">
           <span class="home-play-icon" aria-hidden="true">▶</span>
           <span class="home-video-label" id="home-intro-video-label">Video giới thiệu công ty</span>
           <small id="home-intro-video-status">Khám phá câu chuyện phía sau Công ty A</small>
         </div>
+        <div class="home-actions">
+          <button class="home-cta" type="button" onclick="showSecondPage()">Bat dau hanh trinh <span aria-hidden="true">â†’</span></button>
+          <a class="home-secondary" href="#jobs" onclick="showSecondPage(); return false;">Kham pha vi tri</a>
+        </div>
       </div>
-      <div class="home-actions">
+      <!-- home actions are overlaid inside the video frame -->
+      <div class="home-actions home-actions-legacy">
         <button class="home-cta" type="button" onclick="showSecondPage()">Bat dau hanh trinh <span aria-hidden="true">→</span></button>
         <a class="home-secondary" href="#jobs" onclick="showSecondPage(); return false;">Kham pha vi tri</a>
       </div>
