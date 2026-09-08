@@ -24,6 +24,24 @@ function focusHomeTopic(topic) { showToast(`${topic}: noi dung dang duoc hoan th
 function openHomeSearch() { showToast('Tim kiem job se duoc bo sung o buoc tiep theo.', 'info'); }
 function openHomeCart() { showToast('Gio hang hien chua co san pham.', 'info'); }
 
+function initHomeScrollReveal() {
+  const reveal = document.querySelector('[data-home-reveal]');
+  const homePage = document.getElementById('home-page');
+  if (!reveal || !homePage) return;
+  homePage.addEventListener('wheel', (event) => {
+    const isAtVideoStart = homePage.scrollTop <= 8;
+    if (event.deltaY > 0 && isAtVideoStart && !reveal.classList.contains('is-visible')) {
+      event.preventDefault();
+      reveal.classList.add('is-visible');
+    }
+  }, { passive: false });
+  homePage.addEventListener('scroll', () => {
+    reveal.classList.toggle('is-visible', homePage.scrollTop > 8);
+  }, { passive: true });
+}
+
+initHomeScrollReveal();
+
 function syncHomeIntroVideo() {
   const card = document.getElementById('home-intro-video-card');
   const video = document.getElementById('home-intro-video');

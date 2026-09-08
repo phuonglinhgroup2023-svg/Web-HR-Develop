@@ -4,35 +4,39 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tuyển Dụng Công Ty A - Hành Trình Trải Nghiệm</title>
-  <link rel="stylesheet" href="style.css?v=38">
+  <link rel="stylesheet" href="style.css?v=39">
 </head>
 <body>
   <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
   <header class="site-header" aria-label="Main navigation">
-    <a class="site-logo" href="#" onclick="return showHomePage()" aria-label="Company home">
-      <span class="site-logo-mark" aria-hidden="true">A</span><span>CONG TY A</span>
-    </a>
-    <nav class="site-nav" aria-label="Primary navigation">
-      <a href="#jobs" onclick="return focusHomeTopic('Vi tri')">Vi tri</a>
-      <a href="#rd" onclick="return focusHomeTopic('R&D')">R&amp;D</a>
-      <a href="#marketing" onclick="return focusHomeTopic('Marketing')">Marketing</a>
-      <a href="#support" onclick="return focusHomeTopic('Ho tro')">Ho tro</a>
-    </nav>
-    <div class="site-tools">
-      <button class="site-icon-button" type="button" onclick="openHomeSearch()" aria-label="Search">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg>
-      </button>
-      <button class="site-icon-button" type="button" onclick="openHomeCart()" aria-label="Cart">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 11H6L5 8Z"></path><path d="M9 8a3 3 0 0 1 6 0"></path></svg>
-      </button>
+    <p class="site-announcement">Khám phá cơ hội nghề nghiệp cùng Công Ty A. <a href="#jobs" onclick="return focusHomeTopic('Vi tri')">Tìm hiểu thêm</a></p>
+    <div class="site-nav-bar">
+      <div class="site-nav-left">
+        <button class="site-menu-toggle" type="button" onclick="focusHomeTopic('Menu')" aria-label="Mở menu"><span></span><span></span></button>
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="#jobs" onclick="return focusHomeTopic('Vi tri')">Vị trí</a>
+          <a href="#rd" onclick="return focusHomeTopic('R&D')">Con người</a>
+          <a href="#marketing" onclick="return focusHomeTopic('Marketing')">Văn hoá</a>
+          <a href="#support" onclick="return focusHomeTopic('Ho tro')">Hỗ trợ</a>
+        </nav>
+      </div>
+      <a class="site-logo" href="#" onclick="return showHomePage()" aria-label="Company home">
+        <span class="site-logo-mark" aria-hidden="true">A</span><span>CÔNG TY A</span>
+      </a>
+      <div class="site-tools">
+        <button class="site-language" type="button" onclick="showToast('Ngôn ngữ hiển thị: Tiếng Việt', 'success')" aria-label="Chọn ngôn ngữ"><span aria-hidden="true">★</span> VN</button>
+        <button class="site-icon-button" type="button" onclick="openHomeCart()" aria-label="Cart">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 11H6L5 8Z"></path><path d="M9 8a3 3 0 0 1 6 0"></path></svg>
+        </button>
+        <div class="account-actions" id="account-actions"><button type="button" class="account-login" onclick="openAuthModal('login')">Đăng nhập</button><button type="button" class="account-register" onclick="openAuthModal('register')">Ứng tuyển ngay</button></div>
+      </div>
     </div>
   </header>
   <main class="home-page" id="home-page">
     <div class="home-glow home-glow-one" aria-hidden="true"></div>
     <div class="home-glow home-glow-two" aria-hidden="true"></div>
-    <section class="home-hero" aria-labelledby="home-title">
-      <p class="home-kicker">CO HOI DONG HANH</p>
-      <h1 id="home-title">Kham pha noi<br><span>tai nang cat canh</span></h1>
+    <section class="home-hero" aria-label="Giới thiệu tuyển dụng">
+      <div class="home-scroll-reveal" data-home-reveal>
       <p class="home-copy">Mot hanh trinh nghe nghiep duoc thiet ke quanh ban — kham pha van hoa, con nguoi va nhung vi tri dang cho ban tao dau an.</p>
       <div class="home-video-card" id="home-intro-video-card" role="button" tabindex="0" onclick="showSecondPage()" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); showSecondPage(); }" aria-label="Xem video giới thiệu công ty và sang trang giới thiệu">
         <video id="home-intro-video" class="home-intro-video" muted loop playsinline preload="metadata"></video>
@@ -46,10 +50,9 @@
         <button class="home-cta" type="button" onclick="showSecondPage()">Bat dau hanh trinh <span aria-hidden="true">→</span></button>
         <a class="home-secondary" href="#jobs" onclick="showSecondPage(); return false;">Kham pha vi tri</a>
       </div>
-      <div class="home-highlights" aria-label="Highlights"><span>Van hoa co mo</span><span>Doi ngu truyen cam hung</span><span>Co hoi phat trien</span></div>
+      </div>
     </section>
   </main>
-  <div class="account-actions" id="account-actions"><button type="button" onclick="openAuthModal('login')">Đăng nhập</button><button type="button" class="account-register" onclick="openAuthModal('register')">Đăng ký</button></div>
   <button class="profile-open-button" id="profile-open-button" type="button" onclick="showProfileModal()" aria-label="Mở hồ sơ của tôi" title="Hồ sơ của tôi">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5 12 14.5 20 6.5"></path></svg>
   </button>
